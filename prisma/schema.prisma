@@ -1,0 +1,35 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Enderecos {
+  idenderecos Int     @id @default(autoincrement()) @db.UnsignedInt
+  cep         String  @db.VarChar(45)
+  endereco    String  @db.VarChar(45)
+  numero      String  @db.VarChar(45)
+  complemento String? @db.VarChar(45)
+  bairro      String  @db.VarChar(45)
+  estado      String  @db.VarChar(45)
+  cidade      String  @db.VarChar(45)
+  idpessoas   Int     @db.UnsignedInt
+  pessoas Pessoas @relation(fields: [idpessoas], references: [idpessoas])
+
+}
+
+model Pessoas {
+  idpessoas    Int      @id @default(autoincrement()) @db.UnsignedInt
+  nome         String   @db.VarChar(100)
+  sexo         String   @db.VarChar(20)
+  dtNascimento DateTime @db.Date
+  estadoCivil  String   @db.VarChar(20)
+  createdAt    DateTime @default(now()) @db.Timestamp(0)
+  updatedAt    DateTime @default(now()) @db.Timestamp(0)
+
+  enderecos Enderecos[]
+}
+
