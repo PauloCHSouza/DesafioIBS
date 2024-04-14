@@ -2,6 +2,10 @@ import {IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class createEnderecoDTO {
 
+    @IsOptional()
+    @IsNumber()
+    idenderecos: number;
+
     @IsString()
     cep: string;
 

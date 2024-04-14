@@ -18,5 +18,5 @@ export class createPessoaDTO {
 
     @ValidateNested()
     @Type(() => createEnderecoDTO)
-    enderecos: createEnderecoDTO;
+    enderecos: createEnderecoDTO[];
 }

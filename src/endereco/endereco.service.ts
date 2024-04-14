@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { createEnderecoDTO } from './dto/create-endereco.dto';
 import { UpdateEnderecoDTO } from './dto/update-endereco.dto';
+import { validate } from 'class-validator';
 
 @Injectable()
 export class EnderecoService {
@@ -28,17 +29,24 @@ export class EnderecoService {
     }
 
     async create({cep, endereco, numero, complemento, bairro, estado, cidade, idpessoas }: createEnderecoDTO){
+        const enderecoData = new createEnderecoDTO();
+        enderecoData.cep = cep;
+        enderecoData.endereco = endereco;
+        enderecoData.numero = numero;
+        enderecoData.complemento = complemento ? complemento : '';
+        enderecoData.bairro = bairro;
+        enderecoData.estado = estado;
+        enderecoData.cidade = cidade;
+        enderecoData.idpessoas = idpessoas;
+
+        try {
+            await this.validateInput(enderecoData);
+        } catch (errors) {
+            throw new BadRequestException('Dados de entrada inválidos.', errors);
+        }
+
         return await this.prisma.enderecos.create({
-            data: {
-                cep,
-                endereco,
-                numero,
-                complemento: complemento ? complemento : '',
-                bairro,
-                estado,
-                cidade,
-                idpessoas
-            },
+            data: enderecoData,
             include: {
                 pessoas: true
             }
@@ -49,16 +57,23 @@ export class EnderecoService {
 
         await this.existe(id);
 
+        const enderecoData = new UpdateEnderecoDTO();
+        enderecoData.cep = cep;
+        enderecoData.endereco = endereco;
+        enderecoData.numero = numero;
+        enderecoData.complemento = complemento;
+        enderecoData.bairro = bairro;
+        enderecoData.estado = estado;
+        enderecoData.cidade = cidade;
+
+        try {
+            await this.validateInput(enderecoData);
+        } catch (errors) {
+            throw new BadRequestException('Dados de entrada inválidos.', errors);
+        }
+
         return await this.prisma.enderecos.update({
-            data: {
-                cep,
-                endereco,
-                numero,
-                complemento,
-                bairro,
-                estado,
-                cidade
-            },
+            data: enderecoData,
             where: {
                 idenderecos: id
             },
@@ -80,8 +95,25 @@ export class EnderecoService {
     }
 
     async existe(id: number) {
-        if(!(await this.showById(id))){
-            throw new NotFoundException(`A Pessoa ${id} não existe.`);
+        const endereco = await this.showById(id);
+        if (!endereco) {
+            throw new NotFoundException(`O Endereço ${id} não existe.`);
         }
+    }
+
+    private async validateInput(input: any): Promise<void> {
+        const errors = await validate(input);
+        if (errors.length > 0) {
+            const validationErrors = this.formatValidationErrors(errors);
+            throw validationErrors;
+        }
+    }
+
+    private formatValidationErrors(errors: any[]): string {
+        const formattedErrors = errors.map(error => {
+            const constraints = Object.values(error.constraints).join(', ');
+            return `${error.property}: ${constraints}`;
+        });
+        return formattedErrors.join('; ');
     }
 }
