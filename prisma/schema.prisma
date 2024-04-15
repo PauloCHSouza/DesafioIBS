@@ -33,3 +33,11 @@ model Pessoas {
   enderecos Enderecos[]
 }
 
+model Usuario {
+  id        Int      @id @default(autoincrement()) @db.UnsignedInt
+  nome      String   @db.VarChar(100)
+  login     String   @unique @db.VarChar(45)
+  senha     String   @db.VarChar(255)
+}
+
+
