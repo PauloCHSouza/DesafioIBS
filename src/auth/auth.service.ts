@@ -1,8 +1,8 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsuarioLogin } from './interfaces/usuarios.interface';
-import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { compareSync } from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -11,32 +11,39 @@ export class AuthService {
     private readonly prisma: PrismaService,
   ) {}
 
-  async login(user: UsuarioLogin) {
-    const payload = { nome: user.nome, login: user.login };
-    const accessToken = this.jwtService.sign(payload);
-    return { access_token: accessToken };
+  async login(user) {
+    const payload = { nome: user.nome, login: user.login,};
+
+    return {
+      sucesso: true,
+      token: this.jwtService.sign(payload),
+    };
   }
 
-  async validateUser(payload: any): Promise<any> {
-    const { login, senha } = payload;
-    if (!senha || !login) {
-      throw new UnauthorizedException('Credenciais inválidas');
-    }
+  async validateUser(login: string, senha: string) {
+    let usuario: UsuarioLogin[];
+    let usuarioLogado: UsuarioLogin;
 
-    const usuario = await this.prisma.usuario.findUnique({
-      where: { login },
-    });
-
-    if (!usuario) {
-      throw new UnauthorizedException('Usuário não encontrado');
+    try {
+      const ususarioRep = this.prisma.usuario.findUnique({
+        where: { login },
+      });
+    } catch (error) {
+      return null;
     }
-    console.log(usuario);
-    
-    const senhaValida = await bcrypt.compare(payload.senha, usuario.senha);
-    if (!senhaValida) {
-      throw new UnauthorizedException('Senha inválida');
+    let aceitaLogar = false;
+    if (usuario.length > 0) {
+      usuario.forEach((x) => {
+        const isPasswordValid = compareSync(senha, x.senha);
+        if (isPasswordValid) {
+          aceitaLogar = true;
+          usuarioLogado = x;
+        }
+      });
     }
+    if (!aceitaLogar) return null;
 
-    return { nome: usuario.nome, login: usuario.login };
+    return usuarioLogado;
   }
 }
+

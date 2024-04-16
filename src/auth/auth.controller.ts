@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { UsuarioLogin } from './interfaces/usuarios.interface';
@@ -7,23 +7,9 @@ import { UsuarioLogin } from './interfaces/usuarios.interface';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @UseGuards(AuthGuard('local'))
   @Post('login')
-  async login(@Body() user: UsuarioLogin) {
-    const validatedUser = await this.authService.validateUser(user);
-    console.log(validatedUser);
-    
-    if (!validatedUser) {
-      throw new UnauthorizedException('Credenciais inválidas');
-    }
-
-    const accessToken = await this.authService.login(validatedUser);
-    return { access_token: accessToken };
-  }
-
-  @Post('protected')
-  @UseGuards(AuthGuard('jwt'))
-  async protectedRoute() {
-    // This route is protected, only accessible with a valid JWT
-    return { message: 'This is a protected route.' };
+  async login(@Req() req: any) {
+    return await this.authService.login(req.user);
   }
 }

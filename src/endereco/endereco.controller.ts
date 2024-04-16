@@ -1,9 +1,11 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from '@nestjs/common';
 import { EnderecoService } from './endereco.service';
 import { createEnderecoDTO } from './dto/create-endereco.dto';
 import { UpdateEnderecoDTO } from './dto/update-endereco.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('enderecos')
+@UseGuards(AuthGuard('jwt'))
 export class EnderecoController {
 
     constructor(private readonly enderecoService: EnderecoService) {}
