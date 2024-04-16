@@ -8,6 +8,7 @@ import { EnderecoModule } from './endereco/endereco.module';
 import { PessoaModule } from './pessoa/pessoa.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { UsuariosModule } from './usuarios/usuarios.module';
+import { LocalStrategy } from './auth/strategy/local.strategy';
 
 @Module({
   imports: [
@@ -19,6 +20,6 @@ import { UsuariosModule } from './usuarios/usuarios.module';
     EnderecoModule, PessoaModule, PrismaModule, UsuariosModule
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, LocalStrategy],
 })
 export class AppModule {}

@@ -10,9 +10,9 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly prisma: PrismaService,
   ) {}
-
+  
   async login(user) {
-    const payload = { nome: user.nome, login: user.login,};
+    const payload = { nome: user.nome, login: user.login };
 
     return {
       sucesso: true,
@@ -20,12 +20,12 @@ export class AuthService {
     };
   }
 
-  async validateUser(login: string, senha: string) {
+  async validateUser(login: string, password: string) {
     let usuario: UsuarioLogin[];
     let usuarioLogado: UsuarioLogin;
 
     try {
-      const ususarioRep = this.prisma.usuario.findUnique({
+      usuario = await this.prisma.usuario.findMany({
         where: { login },
       });
     } catch (error) {
@@ -34,7 +34,7 @@ export class AuthService {
     let aceitaLogar = false;
     if (usuario.length > 0) {
       usuario.forEach((x) => {
-        const isPasswordValid = compareSync(senha, x.senha);
+        const isPasswordValid = compareSync(password, x.senha);
         if (isPasswordValid) {
           aceitaLogar = true;
           usuarioLogado = x;
